@@ -1,17 +1,21 @@
 from bottle import run, get, post, view, request, redirect
 
-messages = ["Hello!"]
+messages = [("Nobody", "Hello!")]
+nick = "Nobody"
 
 @get('/')
 @view('index')
 def index():
-    return {'m': messages}
+    return {'messages': messages, 'nick': nick}
 
 
 @post('/send')
 def sendMessage():
+    global nick
     m = request.forms.get('message')
-    messages.append(m)
+    n = request.forms.get('nick')
+    messages.append([n, m])
+    nick = n
     redirect('/')
 
 
