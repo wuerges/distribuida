@@ -22,7 +22,7 @@ $ python3 dht.py
 Para testar, pode ser usado o browser ou entao a ferramenta de linha de comando ***curl***
 
 ```bash
-$ curl -X GET "http://localhost:8080/dht/abcd1234"
-$ curl -X PUT "http://localhost:8080/dht/abcd1234/1234"
-$ curl -X GET "http://localhost:8080/dht/abcd1234"
+$ curl -w "\n" -X GET "http://localhost:8080/dht/abcd1234"
+$ curl -w "\n" -X PUT "http://localhost:8080/dht/abcd1234/1234"
+$ curl -w "\n" -X GET "http://localhost:8080/dht/abcd1234"
 ```

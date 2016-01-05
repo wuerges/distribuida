@@ -2,6 +2,11 @@ from bottle import run, get, put
 import json
 
 
+# BUGLIST
+# - insercao da mesma chave 2 vezes, possibilita inserir o mesmo par de chave/valer em posicoes diferentes da DHT
+# - necessario cria uma maneira para inicializar a DHT, a partir de uma chave inicial
+# - necessario implementar comunicacao em grupo, e propagar os inserts e lookups
+
 def subkeys(k):
     for i in range(len(k), 0, -1):
         yield k[:i]
@@ -9,8 +14,8 @@ def subkeys(k):
 
 
 class DHT:
-    def __init__(self, h):
-        self.k = h
+    def __init__(self, k):
+        self.k = k
         self.h = {}
 
         for sk in subkeys(self.k):
@@ -25,11 +30,15 @@ class DHT:
         return None
 
     def lookup(self, k):
+        print(list(subkeys(k)))
         for sk in subkeys(k):
+            print(sk)
+            print(self.h)
             if sk in self.h:
-                (ki, vi) = self.h[sk]
-                if ki == k:
-                    return vi
+                if self.h[sk]:
+                    (ki, vi) = self.h[sk]
+                    if ki == k:
+                        return vi
         return None
 
     def __repr__(self):
@@ -45,7 +54,6 @@ def dht_lookup(key):
 @put('/dht/<key>/<value>')
 def dht_insert(key, value):
     global dht
-    print(value)
     return json.dumps(dht.insert(key, value))
 
 
