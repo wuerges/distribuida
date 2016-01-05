@@ -9,7 +9,7 @@ Para rodar os exemplos e' necessario o python3, o pacote bottle, o pacote json e
 Todos os pacotes estao disponiveis atraves do pip.
 
 ```bash
-# pip3 install bottle requests
+(como root) $ pip3 install bottle requests
 ```
 
 Apos, basta entrar na pasta do exemplo e roda'-los:
@@ -22,7 +22,7 @@ $ python3 dht.py
 Para testar, pode ser usado o browser ou entao a ferramenta de linha de comando ***curl***
 
 ```bash
-$ curl -X GET "http://localhost:8080/dht/abcd1234
-$ curl -X PUT "http://localhost:8080/dht/abcd1234/1234
-$ curl -X GET "http://localhost:8080/dht/abcd1234
+$ curl -X GET "http://localhost:8080/dht/abcd1234"
+$ curl -X PUT "http://localhost:8080/dht/abcd1234/1234"
+$ curl -X GET "http://localhost:8080/dht/abcd1234"
 ```
