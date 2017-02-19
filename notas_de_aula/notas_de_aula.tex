@@ -1,0 +1,315 @@
+\documentclass{book}
+\usepackage[brazilian]{babel}
+\usepackage[utf8]{inputenc}
+
+
+\author{Emílio Wuerges}
+\title{Plano de Aula - Computação Distribuída}
+\begin{document}
+
+
+
+\chapter{Revisão de Redes de Computadores}
+
+
+\section{Ethernet/Camada física + enlace}
+
+Unidade transmitida se chama de Frame.
+
+Responsabilidades:
+\begin{itemize}
+\item Prevenir colizões,
+\item Dectectar colizões (É importante lembrar que em protocolos sem fio 
+costuma ser impraticável detectar colizões),
+\item Recentemente: Detectar erros nas mensagens (checksum),
+\item Tratar colizões,
+\item Retrasmitir ou
+\item Falhar.
+\end{itemize}
+
+\section{IP/Camada de Rede}
+
+Unidade transmitida se chama de Pacote.
+
+Responsabilidades:
+
+\begin{itemize}
+\item Transferir dados entre interfaces de rede em diferentes enlaces,
+\item Encontrar rotas,
+\item Evitar congestionamento da rede (derrubando pacotes), e
+\item Detectar erros nas mensagens (checksum).
+\end{itemize}
+
+\section{UDP/Camada de Transporte}
+
+Unidade transmitida se chama de Mensagem.
+
+Responsabilidades:
+\begin{itemize}
+\item Disponibilizar os pacotes IP para as aplicações.
+\end{itemize}
+
+\section{UDP/Camada de Transporte}
+
+Não se trata mais de unidades, mas de streams de mensagem.
+
+Responsabilidades:
+\begin{itemize}
+\item Mesmas do UDP,
+\item Controle de Banda,
+\item Garantia de entrega,
+\item Retransmissão,
+\item Ordenação de mensagens, e
+\item Controle de congestionamento (com ajuda da camada de rede).
+\end{itemize}
+
+\chapter{Comunicação Cliente/Servidor}
+
+\section{URI/URL}
+\begin{itemize}
+\item Identifica/endereçar tudo.
+\item No nosso caso: Documentos e procedimentos remotos.
+\end{itemize}
+
+\section{HTTP}
+
+\begin{itemize}
+\item HTTP é um protocolo no nível de aplicação,
+\item Usa TCP,
+\item Criado para gerenciar documentos pela internet.
+\end{itemize}
+
+Possui vários tipos de métodos (CUIDADO, método aqui não significa método da orientação a objeto):
+
+\begin{itemize}
+\item GET 
+É o mais comum. Usado para ler documentos.
+
+\item HEAD
+Quase o mesmo que o get, mas apenas lê o cabeçalho dos documentos.
+
+\item PUT
+Usado para modificar um documento.
+
+\item DELETE
+Usado para eliminar documentos.
+
+\item POST
+Usado para criar documentos novos.
+
+\end{itemize}
+
+\section{XML}
+
+Existe. 
+
+É uma maneira type-safe (que é muito bom) de se representar dados estruturados.
+
+Entretanto,
+já que a maioria das ferramentas usadas não é type-safe, 
+não faz muito sentido usar. 
+Afinal, a força de uma corrente é seu elo mais fraco.
+
+\section{JSON}
+
+É a notação usada para escrever os dados na linguagem JavaScript.
+É muito usada para substituir o XML devido a praticidade de implementação.
+
+Maneira recomendada de se representar os argumentos e o retorno das chamadas ReST.
+
+\section{ReST}
+
+Essencialmente é uma enjambração que usa URIs e o HTTP para oferecer (e gerenciar) 
+recursos (no nosso caso, objetos e métodos - esse sim é da orientação a objetos) na internet.
+
+Atualmente é a maneira mais comum de se oferecer uma API web.
+
+No final das contas, é uma maneira elegante de se fazer 
+chamadas de métodos independente de ambiente de desenvolvimento
+e linguagem de programação usando apenas padrões abertos.
+
+Recursos são representados por uma URI base: http://minhaurlexemplo.com/lista\_de\_objetos
+
+
+É extremamente comum ver esquemas de URIs desta maneira representando recursos:
+
+\begin{itemize}
+\item GET + http://minhaurlexemplo.com/lista\_de\_objetos/nome\_do\_obj : Retorna um JSON com o objeto.
+\item PUT + http://minhaurlexemplo.com/lista\_de\_objetos/nome\_do\_obj + JSON: Altera os campos do objeto que coincidirem com o JSON.
+\item POST + http://minhaurlexemplo.com/lista\_de\_objetos/create + JSON: Cria um objeto com os dados do JSON.
+\item DELETE + http://minhaurlexemplo.com/lista\_de\_objetos/nome\_do\_obj: Apaga o objeto.
+\end{itemize}
+
+Métodos podem ser representados por mais itens no caminho.
+
+\begin{itemize}
+\item http://minhaurlexemplo.com/objeto/metodo/parametro1/parametro2/etc
+\end{itemize}
+
+MUITA ATENÇÃO para o método HTTP escolhido!
+Espera-se que GET, PUT e DELETE sejam idempotentes. Ações não idempotentes devem usar POST.
+
+Violar esta condição pode causar comportamento demoníaco devido a otimizações de cache e proxies.
+
+\chapter{Comunicação em Grupo}
+
+\section{Basic Multicast}
+Suponha que um participante possua um conjunto de pares com qual precisa se comunicar.
+
+Quais os problema do algoritmo da Figura \ref{alg:basic}, no caso de desconexão de algum dos peers?
+
+\begin{figure}
+\begin{verbatim}
+def basic_multicast(m, group):
+  for p in group:
+    send(p, m)
+
+def basic_deliver(m):
+  entrega mensagem para aplicação
+\end{verbatim}
+  \caption{Algortimo Basic Multicast}
+  \label{alg:basic}
+\end{figure}
+
+O primeiro problema já ocorre se o \texttt{send} for bloqueante.
+Caso um dos peers desconectar, o send será bloqueado indefinidamente.
+
+E se caso o \texttt{send} não seja bloqueante. O algoritmo irá progredir.
+
+Entretanto, e se o participante que iniciou os envios falhar, de qualquer maneira
+apenas uma parte dos peers receberá a mensagem.
+
+\section{Reliable Multicast}
+
+\begin{figure}
+\begin{verbatim}
+
+def on_initialize():
+  r = {}
+
+# envio no processo p
+def reliable_multicast(m, group):
+  basic_multicast(m, group)
+  
+def basic_deliver(m):
+  entrega mensagem para aplicação
+
+# recepção no processo q
+def reliable_deliver(m):
+  if not m in r:
+    r.add(m)
+    if not p is q:
+      basic_multicast(m, group)
+    basic_deliver(m)
+
+\end{verbatim}
+  \caption{Reliable Multicast}
+  \label{alg:reliable}
+\end{figure}
+
+O algoritmo da Figura \ref{alg:reliable} resolve o problema.
+O mecanismo de envio de mensagens é inalterado.
+Entretanto, ao receber, o processo receptor precisa verificar
+se a mensagem que ele recebeu já foi recebida. Se não foi, ele envia
+novamente todas as mensagens para todos do grupo.
+
+Como cada grupo retransmitirá todas as mensagens uma vez, 
+e cada retransmissão manda todas as mensagens para o grupo todo,
+o custo é $O(n^2)$.
+
+Entretanto, a vantagem do algoritmo é que ele pode falhar em cada momento que as seguintes
+propriedades serão respeitadas:
+
+Validade: Se um processo efetua o multicast, eventualmente ele entrega a mensagem
+para a aplicação.
+
+Integridade: Se um processo correto entrega a mensagem, todos os processos entregam.
+
+
+\section{Multicast Síncrono}
+
+\begin{figure}
+\begin{verbatim}
+
+def on_initialize():
+  lm = {} # conjunto local de mensagens
+
+def poll_for_messages():
+  for p in group:
+    ms = get_messages(p)
+    for m in ms:
+      if not m in lm:
+        basic_deliver(m)
+    lm.union_with(ms)
+
+a cada intervalo de tempo: poll_for_messages()
+\end{verbatim}
+\caption{Algoritmo para recepção de mensagens síncrono}
+\label{alg:sinc}
+\end{figure}
+
+O algoritmo da Figura \ref{alg:sinc} apresenta uma solução síncrona para o problema.
+Ele apresenta também as propriedades de Validade e Integridade, entretanto, ele
+depende de um tempo mínimo, em que as mensagens precisam ser propagadas para os participates do grupo.
+
+O custo deste algoritmo é $O(n \times m)$, onde $n$ é o número de membros do grupo e $m$ é o número de 
+mensagens enviadas durante a rodada.
+
+Esta abordagem, apesar de ser síncrona, é a sugerida para os trabalhos da disciplina
+pois sua implementação usando ReST é trivial.
+
+\chapter{Relógios Lógicos}
+
+
+\begin{figure}
+\begin{verbatim}
+def on_initialize():
+  l = 0
+
+def on_event():
+  l = l + 1
+
+def clock_send(d, m):
+  send(d, [m, l]) # agrega o relógio local a mensagem enviada
+
+def on_clock_receive([m, l_r]):
+  if l_r > l:
+    l = l_r
+  on_event()
+  basic_deliver(m)
+
+\end{verbatim}
+  \caption{Relógios de Lamport}
+  \label{alg:lamport}
+\end{figure}
+
+
+\begin{figure}
+\begin{verbatim}
+
+def on_initialize(): #inicialização no processo p
+  l = { p: 0 }
+
+def on_event():
+  l[p] = l[p] + 1
+
+def vector_send(d, m):
+  send(d, [m, l]) # agrega o relógio local a mensagem enviada
+
+def on_vector_receive([m, l_r]):
+  for (q, t) in l_r:
+    if not (q in p and p[q] > t):
+      p[q] = t
+  on_event()
+  basic_deliver(m)
+
+\end{verbatim}
+  \caption{Relógios Vetor}
+  \label{alg:vector}
+\end{figure}
+
+\end{document}
+
+
+
+
