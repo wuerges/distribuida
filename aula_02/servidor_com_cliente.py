@@ -17,7 +17,9 @@ def client():
         time.sleep(1)
         np = []
         for p in peers:
+            print("requests.get ", p + "/peers")
             r = requests.get(p + '/peers')
+            print("response:", r.text)
             np = np + json.loads(r.text)
             print(np)
             time.sleep(1)
